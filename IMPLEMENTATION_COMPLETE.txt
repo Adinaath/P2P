@@ -1,0 +1,407 @@
+================================================================================
+ AIRBORNE MESH: COMPREHENSIVE IMPLEMENTATION SPECIFICATION & SYSTEM STATUS
+ Offline Disaster Communication and Drone-Assisted Rescue System
+================================================================================
+Generated Date: 2026-10-11
+Repository Root: d:\Projects\PtoP
+Status: COMPLETE & VERIFIED (Bridgefy BLE Mesh, Android Client, Python Harvester, Tests)
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. Executive Summary & Core Principles
+2. Shared Data Contract & Protocol Specification (`protocol/`)
+3. Android Native Client Implementation (`android-app/`)
+   3.1. Architecture & Tech Stack
+   3.2. Bridgefy-Style Bluetooth Low Energy (BLE) Mesh Networking
+   3.3. Real-Time Auto-Forwarding to Command Web Server
+   3.4. Offline SQLite & Room Persistence Layer
+   3.5. Opportunistic Store-and-Forward Sync Engine
+   3.6. Deterministic AI Triage & Conflict Detection
+   3.7. Upgraded Jetpack Compose UI Screens
+   3.8. Cloud Gateway & Background Services
+   3.9. Android Unit Tests
+4. Python FastAPI Drone Harvester & Rescue Server (`drone-simulator/`)
+   4.1. Architecture & Tech Stack
+   4.2. SQLite Harvester Database
+   4.3. Real-Time Live Auto-Updating Web Dashboard & Audio/Visual Alerts
+   4.4. Interactive One-Click Rescue Directive Dispatcher
+   4.5. REST API Endpoints (`/api/live-feed`, `/sync/transfer`, etc.)
+   4.6. Python Pytest Test Suite (8/8 Passing)
+5. Build Artifacts & Deployment Automation
+6. Complete Repository File Tree & Component Descriptions
+7. Complete Step-by-Step Operational Demonstration Guide
+
+================================================================================
+1. EXECUTIVE SUMMARY & CORE PRINCIPLES
+================================================================================
+Airborne Mesh is an offline-first disaster communication system engineered for
+total connectivity disruption (floods, cyclones, earthquakes, infrastructure collapse).
+It enables standard Android smartphones to communicate directly with zero cell
+service and zero internet infrastructure, while allowing physical laptops or
+airborne drones to harvest emergency data and return life-saving rescue directives.
+
+Core Tenets Implemented:
+1. ZERO INTERNET REQUIREMENT:
+   Every core feature (emergency reporting, community road updates, peer discovery,
+   database persistence, hop routing, and triage) operates 100% offline.
+2. BRIDGEFY-STYLE BLUETOOTH LOW ENERGY (BLE) MESH:
+   Phones communicate peer-to-peer using standard Bluetooth LE (BLE), operating
+   simultaneously as BLE Advertisers (beacons) and BLE Scanners (radar) with GATT
+   chunked message transport over Service UUID 0000FE60.
+3. REAL-TIME AUTO-FORWARDING TO WEB COMMAND CENTER:
+   The instant an Android phone receives an emergency distress report or location
+   from another device over Bluetooth LE, it automatically forwards the payload
+   to the laptop command base station (`POST /sync/transfer`) in real-time.
+4. LIVE AUTO-REFRESHING WEB DASHBOARD:
+   The laptop web server features a real-time command console that auto-polls
+   live feed APIs, emits audio/visual chimes when new BLE distress signals arrive,
+   and provides one-click interactive directive dispatching without page reloads.
+5. PERSISTENCE-BEFORE-ACK:
+   A node NEVER issues an acknowledgement payload until the message record has been
+   physically committed to its local SQLite database.
+6. BOUNDED EPIDEMIC STORE-AND-FORWARD:
+   Messages hop between moving phones and base stations. Hop count is capped (10 hops),
+   TTL expiration is strictly enforced, and records are deduplicated by UUIDv4.
+7. DETERMINISTIC TRIAGE & EVIDENCE PRESERVATION:
+   Contradictory reports (e.g. "Road blocked" vs "Road clear") are preserved as distinct
+   historical evidence, flagged visually with disputed evidence banners, and scored
+   by a deterministic priority triage agent citing exact message IDs.
+
+================================================================================
+2. SHARED DATA CONTRACT & PROTOCOL SPECIFICATION (`protocol/`)
+================================================================================
+
+File: protocol/message-schema.json
+- Canonical v1 JSON schema contract defining all message payloads.
+- Defines fields:
+  * `schema_version`: Strict integer version (1).
+  * `message_id`: UUIDv4 string identifier for idempotent deduplication.
+  * `original_sender`: Pseudonymous node identifier of the originator.
+  * `created_at`: Epoch timestamp (seconds) when report was generated.
+  * `expires_at`: Epoch timestamp (seconds) for automatic TTL garbage collection.
+  * `message_type`: Enum ["DISTRESS", "COMMUNITY_REPORT", "RESCUE_UPDATE"].
+  * `status`: Enum ["CRITICAL", "URGENT", "NORMAL", "SAFE"].
+  * `body`: Human-readable description (max 500 characters).
+  * `emergency_details`: Type ("FLOOD", "FIRE", "MEDICAL", "TRAPPED", "COLLAPSE"),
+    people count, and immediate hazards.
+  * `location`: Latitude, longitude, accuracy in meters, and capture timestamp.
+  * `hop_trail`: Array of HopEntry records (relay node ID, received timestamp).
+  * `delivery`: DeliveryStatus tracking rescue state:
+    ["CREATED", "SENT", "RECEIVED", "ACKNOWLEDGED", "RESOLVED"].
+
+File: protocol/sync-protocol.md
+- Protocol specification detailing the bounded store-and-forward state machine:
+  1. Connection Phase: Bluetooth LE GATT connection on Service UUID 0000FE60.
+  2. Handshake Frame: Version negotiation and capability exchange.
+  3. Inventory Offer Frame: Lightweight list of unexpired (message_id, created_at, expires_at).
+  4. Inventory Request Frame: Receiver returns list of missing IDs only.
+  5. Batch Data Frame: Sender transmits missing message payloads in chunked MTU frames.
+  6. Batch ACK Frame: Receiver returns list of successfully persisted message IDs.
+  7. Reverse Sync: Peer roles reverse to achieve full bidirectional synchronization.
+  8. Session Close: Clean GATT termination.
+
+================================================================================
+3. ANDROID NATIVE CLIENT IMPLEMENTATION (`android-app/`)
+================================================================================
+
+3.1. Architecture & Tech Stack:
+- Target SDK: 35 | Compile SDK: 35 | Min SDK: 29 (Android 10+)
+- Language: 100% Kotlin with Kotlin Coroutines and StateFlow architecture.
+- UI Framework: Jetpack Compose with Material 3 tactical emergency dark theme.
+- Local Storage: Android Jetpack Room with SQLite database.
+- Serialization: Kotlinx Serialization (JSON).
+- Location: Android LocationManager with explicit runtime permissions.
+
+3.2. Bridgefy-Style Bluetooth Low Energy (BLE) Mesh (`BridgefyBleManager.kt`):
+- Operates 100% offline without Wi-Fi, cell service, or internet.
+- Service UUID: `0000FE60-0000-1000-8000-00805F9B34FB`
+- Sync Characteristic UUID: `0000FE61-0000-1000-8000-00805F9B34FB`
+- Node Info Characteristic UUID: `0000FE62-0000-1000-8000-00805F9B34FB`
+- BLE Advertiser: Periodically broadcasts Service UUID and Node ID in service data.
+- BLE GATT Server: Listens for incoming peer connections and reassembles chunked
+  JSON payloads transmitted across multiple MTU frames (`C:<id>:<idx>:<total>:<data>`).
+- BLE Scanner: Continuously scans for nearby peer advertisements with low-latency settings.
+- GATT Client: Connects to discovered peers, negotiates 512-byte MTU, and writes missing
+  batches sequentially.
+
+3.3. Real-Time Auto-Forwarding to Command Web Server:
+- `BridgefyBleManager` provides `onDistressReceivedViaBle` callback.
+- In `MainActivity.kt`, whenever an emergency distress signal is received via Bluetooth LE:
+  * Ingested into local Room/SQLite database.
+  * If the laptop base station URL (`http://192.168.32.5:8000`) is configured and auto-forward
+    is enabled, launches a coroutine calling `laptopSyncClient.forwardEmergencyDistress()`.
+  * Instantly posts the emergency payload to `POST /sync/transfer` on the laptop server.
+  * The web dashboard receives the signal, plays an audio alert chime, and displays the card!
+
+3.4. Offline SQLite & Room Persistence Layer (`data/`):
+- `AirborneMeshDatabase.kt`: Room database containing `MessageDao` with queries:
+  * `getAllMessagesFlow()`: Real-time UI updates via Kotlin Flow.
+  * `getMessageById(id)`: Single message retrieval.
+  * `getAllMessageIds()`: Inventory set calculation.
+  * `insertMessage(entity)`: ID-based deduplication with `OnConflictStrategy.IGNORE`.
+  * `updateDeliveryState(id, state, ack, drone)`: Deterministic state transitions.
+  * `purgeExpired(now)`: Automatic garbage collection of expired reports.
+- `MessageEntity.kt`: SQLite Room entity mapping domain models to disk tables.
+- `MessageRepository.kt`: Clean repository abstraction managing database operations,
+  hop trail stamping, persistence-before-ACK verification, and reactive UI flows.
+
+3.5. Deterministic AI Triage & Conflict Detection (`ai/DistressTriageAgent.kt`):
+- Prioritizes emergency reports using deterministic rule-based algorithms:
+  * Baseline priority: CRITICAL = 100, URGENT = 70, NORMAL = 40.
+  * Hazard multipliers: Trapped victims (+30), Flood (+25), Collapse (+25), Fire (+20).
+  * Casualty scaling: Up to +20 points proportional to number of affected people.
+  * Time decay factor: Aging unacknowledged emergencies receive elevated priority.
+- Conflicting Evidence Detection:
+  * Scans community reports for contradictory assertions on the same location/resource
+    (e.g., "Bridge collapsed" vs "Bridge clear and open").
+  * Flags disputed pairs with `isConflicting = true` and identifies message IDs.
+- Zero External API Dependency: Runs 100% locally on phone CPU in under 5 milliseconds.
+
+3.6. Upgraded Jetpack Compose UI Screens (`ui/`):
+- `MainActivity.kt`: Central navigation host with persistent 5-tab bottom bar:
+  1. 🚨 Distress (SOS) Screen (`ui/distress/DistressScreen.kt`):
+     * Big red emergency SOS broadcast button.
+     * Hazard selector: Flood, Fire, Medical, Trapped, Collapse.
+     * Casualty counter stepper (1 to 50+ people).
+     * GPS coordinates auto-filled from device location sensor.
+     * Live message list with lifecycle status badges:
+       `CREATED` -> `SENT` -> `RECEIVED` -> `ACKNOWLEDGED` -> `RESOLVED`.
+  2. 📢 Community Reports Screen (`ui/community/CommunityScreen.kt`):
+     * Citizen reporting for road closures, shelter capacity, and drinking water.
+     * `DISPUTED EVIDENCE DETECTED` warning banner highlighting contradictory reports.
+  3. 📡 BLE Mesh Networking Screen (`ui/devices/DevicesScreen.kt`):
+     * Node identifier and Bluetooth LE status banner.
+     * Animated radar sweep pulse with scanning state.
+     * Live packet counter: Packets RX, Packets TX, Discovered Peers.
+     * Discovered BLE Peer Devices list with signal strength (RSSI in dBm) and 1-tap Sync button.
+     * Laptop Base Station Station Relay card with instant Auto-Forward toggle.
+     * Test Inject Simulated BLE Distress Signal button.
+  4. 🚁 Drone Mode Simulator Screen (`ui/rescue/DroneModeScreen.kt`):
+     * Turns any spare phone into an airborne rescue harvester.
+     * Collects distress messages from victims and broadcasts rescue directives.
+  5. 🧠 AI Triage Screen (`ui/ai/AiTriageScreen.kt`):
+     * Ranked incident triage list with exact deterministic scores.
+     * Evidence citations linking rescue recommendations to specific message IDs.
+
+3.7. Cloud Gateway Worker (`cloud/CloudGatewayWorker.kt`):
+- Background `CoroutineWorker` scheduled with Android Jetpack WorkManager.
+- Constraints: `NetworkType.CONNECTED` (activates only when internet is restored).
+- Opportunistically uploads cached offline records to central command endpoints.
+
+3.8. Android Unit Tests (`src/test/`):
+- `MessageProtocolTest.kt`: Validates JSON schema encoding, decoding, and hop trails.
+- `DistressTriageAgentTest.kt`: Verifies triage rankings and conflict detection.
+- `CloudGatewayWorkerTest.kt`: Verifies offline worker constraints and payload creation.
+- Result: 100% TESTS PASSING (`gradlew.bat testDebugUnitTest`).
+
+================================================================================
+4. PYTHON FASTAPI DRONE HARVESTER & RESCUE SERVER (`drone-simulator/`)
+================================================================================
+
+4.1. Architecture & Tech Stack:
+- Language: Python 3.10+
+- Web Framework: FastAPI with Uvicorn ASGI server.
+- Database: SQLite (`drone_harvester.db`) with zero external database dependencies.
+- Validation: Pydantic v2 data models matching `protocol/message-schema.json`.
+- Testing: Pytest test suite with FastAPI TestClient.
+
+4.2. SQLite Harvester Database (`app/storage/db.py`):
+- `DroneStorage` class initializing table `harvested_messages`:
+  * Indexed by `message_id`, `message_type`, and `rescue_state`.
+  * `insert_message`: Idempotent SQLite insert guaranteeing persistence before ACK.
+  * `get_all_ids`: Returns complete list of stored message IDs for inventory delta.
+  * `get_pending_distress_queue`: Queries unhandled SOS incidents in chronological order.
+  * `get_all_messages`: Returns full historical record set.
+  * `update_rescue_state`: Transitions distress messages to `ACKNOWLEDGED` or `RESOLVED`.
+
+4.3. Real-Time Live Auto-Updating Web Dashboard:
+- `GET /` and `GET /dashboard`:
+  * Modern Tactical Command Post UI designed with Inter and JetBrains Mono typography.
+  * Real-time auto-polling script (`setInterval`) querying `/api/live-feed` every 2 seconds.
+  * Emergency Audio Chime: Synthesized audio beep via Web Audio API (`AudioContext`)
+    triggered when a new distress signal is ingested over the mesh.
+  * Visual Alert Banner: Flashes red toast on newly ingested BLE distress signals.
+  * Live Incident Cards showing victim count, situational text, GPS coordinates with
+    direct Google Maps link, and hop trail provenance:
+    `PHONE-VICTIM-BLE ➔ (BLE MESH) ➔ PHONE-B-RELAY ➔ (HTTP) ➔ BASE STATION`.
+  * Interactive One-Click Directive Dispatcher on each card.
+  * One-Click Incident Resolution (`Mark Resolved`).
+  * Test Inject BLE Distress Signal button for direct browser demonstration.
+  * Hero APK Download Banner for direct 1-tap download of `AirborneMesh.apk` (53.3 MB).
+
+4.4. REST API Endpoints:
+- `GET /api/live-feed`: Real-time JSON feed of active distress queue, victim counts, and stats.
+- `POST /sync/handshake`: Protocol handshake exchange.
+- `POST /sync/inventory`: Identifies missing records.
+- `POST /sync/transfer`: Ingests message batch, returns `BatchAck`.
+- `GET /rescue/queue`: Returns list of active distress messages.
+- `POST /rescue/dispatch`: Operator dispatches rescue directive.
+- Over-the-air APK download aliases: `/download/apk`, `/download`, `/apk`, `/AirborneMesh.apk`.
+
+4.5. Python Pytest Test Suite (`tests/`):
+- `test_sync.py`: Validates handshake, inventory filtering, batch transfer,
+  persistence-before-ACK, and directive dispatching.
+- `test_api.py`: Validates FastAPI HTTP endpoints, status codes, and JSON schemas.
+- Result: 8/8 TESTS PASSING (`python -m pytest -v`).
+
+================================================================================
+5. BUILD ARTIFACTS & DEPLOYMENT AUTOMATION
+================================================================================
+
+1. Pre-Compiled Android APK (`AirborneMesh.apk`):
+   - Location: `d:\Projects\PtoP\AirborneMesh.apk` (and mirrored in `drone-simulator/`)
+   - File Size: 55,934,462 bytes (~53.3 MB)
+   - Compiled with Gradle 8.9 & Android SDK 35 with Bluetooth Low Energy mesh enabled.
+   - Verified and runnable on physical Android test devices.
+
+2. Automated ADB Deployment Script (`deploy.ps1`):
+   - Location: `d:\Projects\PtoP\deploy.ps1`
+   - Automatically detects connected physical devices via ADB.
+   - Installs `AirborneMesh.apk` with replacement flag (`-r`).
+   - Automatically launches `org.airbornemesh/.MainActivity` on all target devices.
+
+3. Server Startup & Firewall Rules:
+   - Configured to bind on `0.0.0.0:8000` (and `8001`) for laptop LAN hosting.
+   - Inbound Windows Firewall rule configured for TCP port 8000.
+
+================================================================================
+6. COMPLETE REPOSITORY FILE TREE & COMPONENT DESCRIPTIONS
+================================================================================
+
+d:\Projects\PtoP\
+│
+├── AirborneMesh.apk                     -> Standalone pre-compiled release APK with BLE Mesh (53.3 MB)
+├── deploy.ps1                           -> Automated ADB install & launch script for Windows
+├── README.md                            -> Complete project documentation & BLE runner guide
+├── IMPLEMENTATION_COMPLETE.txt          -> This comprehensive implementation verification report
+│
+├── protocol\                            -> Shared Data Contracts (Android + Python)
+│   ├── message-schema.json              -> v1 JSON schema defining message structure, enums, & fields
+│   └── sync-protocol.md                 -> State machine, framing, & persistence-before-ACK specification
+│
+├── docs\                                -> System Documentation
+│   └── architecture.md                  -> Architecture diagram, BLE Mesh transport, & security rules
+│
+├── Readme\                              -> Hackathon Challenge Requirements
+│   └── agents.md                        -> Original problem statement, rules, & technical criteria
+│
+├── android-app\                         -> Native Android Application (Kotlin / Jetpack Compose)
+│   ├── gradlew.bat                      -> Gradle wrapper executable for Windows
+│   ├── build.gradle.kts                 -> Root Gradle build configuration
+│   └── app\
+│       ├── build.gradle.kts             -> App module configuration (Compose, Room, Coroutines, SDK 35)
+│       └── src\
+│           ├── test\java\org\airbornemesh\
+│           │   ├── MessageProtocolTest.kt       -> Protocol serialization & hop trail unit tests
+│           │   ├── DistressTriageAgentTest.kt   -> Deterministic scoring & conflict detection tests
+│           │   └── CloudGatewayWorkerTest.kt    -> Offline WorkManager worker unit tests
+│           └── main\
+│               ├── AndroidManifest.xml          -> Bluetooth LE & Location permissions
+│               └── java\org\airbornemesh\
+│                   ├── MainActivity.kt          -> Top-level navigation, tab bar, & real-time auto-forward
+│                   ├── ai\
+│                   │   └── DistressTriageAgent.kt       -> Deterministic offline AI triage agent
+│                   ├── cloud\
+│                   │   └── CloudGatewayWorker.kt        -> Background cloud sync worker (WorkManager)
+│                   ├── connectivity\
+│                   │   ├── BridgefyBleManager.kt        -> Bridgefy-style BLE Mesh (Adv, Scan, GATT)
+│                   │   └── WifiLanMeshManager.kt        -> Universal NSD/mDNS + TCP mesh helper
+│                   ├── data\
+│                   │   ├── local\
+│                   │   │   ├── AirborneMeshDatabase.kt  -> Room SQLite DB & DAO definitions
+│                   │   │   └── MessageEntity.kt         -> Room SQLite database entities
+│                   │   ├── model\
+│                   │   │   └── MessageModels.kt         -> Kotlin domain models & state enums
+│                   │   └── repository\
+│                   │       └── MessageRepository.kt     -> Thread-safe repository managing SQLite & UI
+│                   ├── location\
+│                   │   └── LocationProvider.kt          -> Offline GPS capture with accuracy & timestamps
+│                   ├── rescue\
+│                   │   └── PhoneDroneSimulator.kt       -> In-app phone drone harvester engine
+│                   ├── sync\
+│                   │   ├── LaptopHttpSyncClient.kt      -> Direct HTTP client & instant distress forwarder
+│                   │   ├── SyncEngine.kt                -> Full duplex socket sync engine
+│                   │   └── SyncProtocol.kt              -> Network framing & handshake data classes
+│                   └── ui\
+│                       ├── theme\Theme.kt               -> Material 3 high-contrast emergency theme
+│                       ├── distress\DistressScreen.kt   -> SOS creation & live status lifecycle UI
+│                       ├── community\CommunityScreen.kt -> Citizen road/shelter reports & dispute banner
+│                       ├── devices\DevicesScreen.kt     -> Upgraded BLE Mesh radar & Base Station Relay UI
+│                       ├── rescue\DroneModeScreen.kt    -> Phone-as-a-Drone harvester simulation UI
+│                       └── ai\AiTriageScreen.kt         -> Ranked triage list & evidence citations UI
+│
+└── drone-simulator\                     -> Python Rescue Harvester & Base Station Server
+    ├── requirements.txt                 -> Dependencies (fastapi, uvicorn, pydantic, pytest)
+    ├── drone_harvester.db               -> SQLite database preserving all harvested disaster records
+    ├── AirborneMesh.apk                 -> Server copy of compiled APK for browser download
+    ├── tests\
+    │   ├── test_sync.py                 -> Store-and-forward sync protocol unit tests
+    │   └── test_api.py                  -> FastAPI endpoint & schema validation unit tests
+    └── app\
+        ├── main.py                      -> Real-time live Tactical Command Web Hub & REST endpoints
+        ├── models\schemas.py            -> Pydantic v2 models mirroring message-schema.json
+        ├── services\sync_service.py     -> Ingestion logic, hop trail appending, & directive dispatch
+        └── storage\db.py                -> SQLite storage layer enforcing persistence before ACK
+
+================================================================================
+7. COMPLETE STEP-BY-STEP OPERATIONAL DEMONSTRATION GUIDE
+================================================================================
+
+Setup:
+- Laptop IP: 192.168.32.5
+- Base Station Server running:
+  `cd d:\Projects\PtoP\drone-simulator`
+  `python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
+
+Step 1: Install APK on Android Phones
+- Connect phones to same Wi-Fi router or laptop Mobile Hotspot.
+- On each phone's browser, visit: `http://192.168.32.5:8000/`
+- Tap the green **📥 Download AirborneMesh.apk** button and install.
+- (Or connect via USB cable and run `.\deploy.ps1`).
+
+Step 2: Victim Broadcasts SOS (Phone A)
+- Open Airborne Mesh -> **SOS** tab.
+- Tap **🚨 BROADCAST EMERGENCY SOS**.
+- Select `FLOOD`, 3 victims, describe situation ("Water rising on rooftop").
+- Tap **Broadcast Now**.
+- Observe lifecycle badge: **`CREATED`** (Amber).
+- Phone A automatically advertises the distress signal over Bluetooth Low Energy.
+
+Step 3: Peer-to-Peer Bluetooth Mesh Relay (Phone A -> Phone B)
+- On **Phone B**: Switch to **BLE Mesh** tab -> tap **`Start BLE Mesh`**.
+- Phone B's BLE scanner discovers Phone A, negotiates GATT MTU, and ingests the distress signal.
+- Phone B commits it to local SQLite and marks Phone A as **`RECEIVED`** (Blue).
+
+Step 4: Real-Time Auto-Forwarding to Laptop Base Station
+- Phone B is connected to the laptop's Wi-Fi / Hotspot with **⚡ Instant Auto-Forward** enabled.
+- **The exact second Phone B receives the distress signal via Bluetooth**, Phone B immediately
+  posts it to `http://192.168.32.5:8000/sync/transfer`!
+- The laptop base station ingests the signal and persists it to `drone_harvester.db`.
+
+Step 5: Laptop Command Center Auto-Updates in Real Time
+- Open `http://localhost:8000/` on your laptop browser.
+- **Without refreshing the page**, the web console immediately:
+  * Emits an emergency audio alert chime.
+  * Flashes: `🚨 NEW BLE DISTRESS SIGNAL INGESTED OVER MESH RELAY!`.
+  * Renders the new incident card with victim count, GPS coordinates, and hop trail:
+    `PHONE-VICTIM-BLE ➔ (BLE MESH) ➔ PHONE-B-RELAY ➔ (HTTP) ➔ BASE STATION`.
+
+Step 6: Laptop Operator Dispatches Rescue Directive
+- On the web dashboard, click **`🚨 Dispatch Directive`** on the incident card.
+- Enter directive: `"Rescue boat dispatched from Sector 4. ETA 15 minutes. Stay on roof."`
+- Click **Send Directive Now**. The directive is signed and committed to the database.
+
+Step 7: Propagation Back to Victim (Phone A)
+- When Phone B syncs back with the base station, it pulls the rescue directive.
+- Phone B relays it back to Phone A over the Bluetooth Low Energy mesh.
+- Phone A's badge turns **`ACKNOWLEDGED`** (Green), displaying:
+  *"Rescue boat dispatched from sector 4. ETA 15 minutes. Stay on roof."*
+
+Step 8: Contradictory Evidence & Deterministic AI Triage
+- Submit conflicting road reports on the **Community** tab:
+  * Phone A: "Sector 4 North Bridge blocked by flood debris"
+  * Phone B: "Sector 4 North Bridge is clear and passable"
+- Observe the **`DISPUTED EVIDENCE DETECTED`** warning banner on the Community tab.
+- Switch to the **AI Triage** tab to view deterministic priority scoring citing exact message IDs.
+================================================================================

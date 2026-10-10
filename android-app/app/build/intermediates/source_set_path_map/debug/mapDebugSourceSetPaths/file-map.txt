@@ -1,0 +1,51 @@
+org.airbornemesh.app-ui-tooling-preview-release-0 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\010db5d74dd3ecbb50016abe22dce7d6\transformed\ui-tooling-preview-release\res
+org.airbornemesh.app-foundation-release-1 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\0835a3879ca552f9e3bcf373921a0b46\transformed\foundation-release\res
+org.airbornemesh.app-lifecycle-livedata-core-2.8.5-2 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\0d2d4dd6545e4910ae91ba170f63f1a9\transformed\lifecycle-livedata-core-2.8.5\res
+org.airbornemesh.app-lifecycle-viewmodel-savedstate-2.8.5-3 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\1040722fa9406d667847ce502fd89ccc\transformed\lifecycle-viewmodel-savedstate-2.8.5\res
+org.airbornemesh.app-core-runtime-2.2.0-4 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\1818a543fd4d876f8726399b5234329b\transformed\core-runtime-2.2.0\res
+org.airbornemesh.app-material-icons-extended-release-5 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\2089ff6edb0f93de6b0c783cc848950e\transformed\material-icons-extended-release\res
+org.airbornemesh.app-savedstate-ktx-1.2.1-6 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\2436f76bb22b17af66675b9e4565230f\transformed\savedstate-ktx-1.2.1\res
+org.airbornemesh.app-lifecycle-runtime-ktx-release-7 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\2d271ebbd3ce266f5812abe1996f8cad\transformed\lifecycle-runtime-ktx-release\res
+org.airbornemesh.app-emoji2-1.3.0-8 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\2fb02624f0df7793c970cb5db616eb8e\transformed\emoji2-1.3.0\res
+org.airbornemesh.app-lifecycle-viewmodel-compose-release-9 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\323ac4d0d16c86363b51d595467f07fc\transformed\lifecycle-viewmodel-compose-release\res
+org.airbornemesh.app-sqlite-framework-2.4.0-10 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\32641696796a0e5d328178c1f9d1f40d\transformed\sqlite-framework-2.4.0\res
+org.airbornemesh.app-material-ripple-release-11 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\32c76d8f9fbd89f379aad8d8a1355556\transformed\material-ripple-release\res
+org.airbornemesh.app-runtime-saveable-release-12 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\3511157ddad543a7fe00c77dae3d5a58\transformed\runtime-saveable-release\res
+org.airbornemesh.app-lifecycle-runtime-release-13 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\36a5b1c9a3707548ce6d400861c6cfa3\transformed\lifecycle-runtime-release\res
+org.airbornemesh.app-ui-text-release-14 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\3c929fa804dd18a3e45cf1ea8e17a970\transformed\ui-text-release\res
+org.airbornemesh.app-savedstate-1.2.1-15 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\418f2a6c7219f1a125d1cceffac07cfc\transformed\savedstate-1.2.1\res
+org.airbornemesh.app-customview-poolingcontainer-1.0.0-16 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\514a31b6669908a119745568bba6866c\transformed\customview-poolingcontainer-1.0.0\res
+org.airbornemesh.app-foundation-layout-release-17 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\54767f3f5b00ab4bb7a0c2e2cba4bd6e\transformed\foundation-layout-release\res
+org.airbornemesh.app-sqlite-2.4.0-18 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\56807e8a8dde9dd6aecc4656be6b0dc6\transformed\sqlite-2.4.0\res
+org.airbornemesh.app-ui-release-19 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\5b7d87cc218799f128683d429aecd7d5\transformed\ui-release\res
+org.airbornemesh.app-profileinstaller-1.3.1-20 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\607e2e816a4617ee68c805d015728236\transformed\profileinstaller-1.3.1\res
+org.airbornemesh.app-activity-compose-1.9.2-21 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\686ee44f550b38d9e4904a08fc5a67bd\transformed\activity-compose-1.9.2\res
+org.airbornemesh.app-core-1.13.1-22 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\760927ce037121bf0feb73d12d96af7f\transformed\core-1.13.1\res
+org.airbornemesh.app-lifecycle-viewmodel-release-23 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\78ab80f6be3aedade746fe0688b5311a\transformed\lifecycle-viewmodel-release\res
+org.airbornemesh.app-ui-geometry-release-24 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\78db71e3fb2287d3c9a49ab09fae0ab1\transformed\ui-geometry-release\res
+org.airbornemesh.app-graphics-path-1.0.1-25 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\79661ab19543cadef4606ff3a15271f6\transformed\graphics-path-1.0.1\res
+org.airbornemesh.app-ui-graphics-release-26 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\7a4dffa23880cc7a6231ee07d9573f15\transformed\ui-graphics-release\res
+org.airbornemesh.app-lifecycle-runtime-compose-release-27 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\8245860e596e19cc4d6bd5a54003fed3\transformed\lifecycle-runtime-compose-release\res
+org.airbornemesh.app-ui-unit-release-28 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\926144a69cd44dae7f3a938c9062537b\transformed\ui-unit-release\res
+org.airbornemesh.app-animation-release-29 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\9362f44a57a14a5ac588cb6a6a85e5ad\transformed\animation-release\res
+org.airbornemesh.app-material3-release-30 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\a0de9c947a8a32a051f7ed7cb5438737\transformed\material3-release\res
+org.airbornemesh.app-animation-core-release-31 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\a5758d0c3670a2b6b94876a49d1c9d54\transformed\animation-core-release\res
+org.airbornemesh.app-room-ktx-2.6.1-32 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\a7031688f0ac5c7a52868fb82ebc39ee\transformed\room-ktx-2.6.1\res
+org.airbornemesh.app-core-ktx-1.13.1-33 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\b122a2dde4d44222295004856aa93be4\transformed\core-ktx-1.13.1\res
+org.airbornemesh.app-lifecycle-viewmodel-ktx-2.8.5-34 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\b685a46266181341374761b5a7ce483c\transformed\lifecycle-viewmodel-ktx-2.8.5\res
+org.airbornemesh.app-runtime-release-35 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\bd7a38d2f5f8487eea597353e4f5b49d\transformed\runtime-release\res
+org.airbornemesh.app-material-icons-core-release-36 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\c1178423e8788849f57e95bcae3fe99f\transformed\material-icons-core-release\res
+org.airbornemesh.app-annotation-experimental-1.4.0-37 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\c3eec702f2312ba6ac2b62958d70f45b\transformed\annotation-experimental-1.4.0\res
+org.airbornemesh.app-startup-runtime-1.1.1-38 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\c5b74af0965e7609a2c74d979d98652f\transformed\startup-runtime-1.1.1\res
+org.airbornemesh.app-ui-util-release-39 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\cfc30ef8d7beecd6dc7e4ecef60654f6\transformed\ui-util-release\res
+org.airbornemesh.app-lifecycle-process-2.8.5-40 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\dcaa3939ead4aa975cccd3d1e1169b8a\transformed\lifecycle-process-2.8.5\res
+org.airbornemesh.app-activity-1.9.2-41 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\e8fe3f6e5d7fb939bd3d3522c2683222\transformed\activity-1.9.2\res
+org.airbornemesh.app-activity-ktx-1.9.2-42 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\f54d53fa8f4dcf80dc71dc9ce65ad4bf\transformed\activity-ktx-1.9.2\res
+org.airbornemesh.app-room-runtime-2.6.1-43 C:\Users\Shivahari R\.gradle\caches\8.9\transforms\f9af297ab2d5320720b0bee565687bdb\transformed\room-runtime-2.6.1\res
+org.airbornemesh.app-pngs-44 D:\Projects\PtoP\android-app\app\build\generated\res\pngs\debug
+org.airbornemesh.app-resValues-45 D:\Projects\PtoP\android-app\app\build\generated\res\resValues\debug
+org.airbornemesh.app-packageDebugResources-46 D:\Projects\PtoP\android-app\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+org.airbornemesh.app-packageDebugResources-47 D:\Projects\PtoP\android-app\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+org.airbornemesh.app-debug-48 D:\Projects\PtoP\android-app\app\build\intermediates\merged_res\debug\mergeDebugResources
+org.airbornemesh.app-debug-49 D:\Projects\PtoP\android-app\app\src\debug\res
+org.airbornemesh.app-main-50 D:\Projects\PtoP\android-app\app\src\main\res

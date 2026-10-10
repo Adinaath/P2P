@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AirborneMeshMessage",
+  "description": "Canonical versioned envelope for all Airborne Mesh peer-to-peer and drone messages",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "message_id",
+    "original_sender",
+    "created_at",
+    "expires_at",
+    "message_type",
+    "status",
+    "body"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Version of the message protocol"
+    },
+    "message_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Globally unique identifier for the message"
+    },
+    "original_sender": {
+      "type": "string",
+      "description": "Pseudonymous stable device or node identifier"
+    },
+    "created_at": {
+      "type": "integer",
+      "description": "UTC Unix epoch timestamp in seconds when the message was originated"
+    },
+    "expires_at": {
+      "type": "integer",
+      "description": "UTC Unix epoch timestamp after which this report is considered stale"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": ["DISTRESS", "COMMUNITY_REPORT", "RESCUE_UPDATE", "ACKNOWLEDGEMENT"],
+      "description": "Primary semantic type of the message"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["CRITICAL", "MODERATE", "SAFE", "INFORMATIONAL"],
+      "description": "Emergency classification level (not delivery state)"
+    },
+    "body": {
+      "type": "string",
+      "maxLength": 1024,
+      "description": "Human-readable payload or notes"
+    },
+    "emergency_details": {
+      "type": "object",
+      "properties": {
+        "emergency_type": {
+          "type": "string",
+          "enum": ["FLOOD", "TRAPPED", "MEDICAL", "FIRE", "COLLAPSE", "OTHER"]
+        },
+        "people_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "immediate_hazards": {
+          "type": "string"
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "required": ["lat", "lng", "accuracy_m", "observed_at"],
+      "properties": {
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lng": { "type": "number", "minimum": -180, "maximum": 180 },
+        "accuracy_m": { "type": "number", "minimum": 0 },
+        "observed_at": { "type": "integer" }
+      }
+    },
+    "hop_trail": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["relay_node", "received_at"],
+        "properties": {
+          "relay_node": { "type": "string" },
+          "received_at": { "type": "integer" }
+        }
+      }
+    },
+    "reference_message_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Target message ID for ACKNOWLEDGEMENT or RESCUE_UPDATE"
+    },
+    "delivery": {
+      "type": "object",
+      "properties": {
+        "received_by_drone": { "type": "boolean", "default": false },
+        "acknowledged": { "type": "boolean", "default": false },
+        "rescue_state": {
+          "type": "string",
+          "enum": ["CREATED", "SENT", "RECEIVED", "ACKNOWLEDGED", "RESOLVED"],
+          "default": "CREATED"
+        }
+      }
+    }
+  }
+}
